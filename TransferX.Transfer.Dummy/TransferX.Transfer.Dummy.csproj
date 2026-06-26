@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>TransferX.Transfer.Dummy</AssemblyName>
+    <RootNamespace>TransferX.Transfer.Dummy</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TransferX.Transfer.Abstractions" Version="2.0.0" />
+    <PackageReference Include="TransferX.Core" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>
