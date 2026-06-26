@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TransferX.Transfer.Dummy\TransferX.Transfer.Dummy.csproj" />
+    <ProjectReference Include="..\..\src\TransferX.Transfer.Dummy\TransferX.Transfer.Dummy.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿// SOWI Informatik, www.sowi.ch
+// SOWI Informatik, www.sowi.ch
 // Franz Schönbächler
 
 namespace TransferX.Transfer.Dummy.Helpers;

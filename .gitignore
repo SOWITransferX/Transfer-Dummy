@@ -9,7 +9,12 @@
 *.user
 *.userosscache
 *.sln.docstates
+
+# Projekt-/IDE-spezifisch (lokal)
 .cursor
+.vscode/
+*.code-workspace
+scripts/Build-*.ps1
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

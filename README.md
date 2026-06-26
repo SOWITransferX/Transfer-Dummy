@@ -61,8 +61,8 @@ Quell- und Ziel-Provider werden von TransferX injiziert; das Plugin orchestriert
 
 ## Projektstruktur
 
-- `TransferX.Transfer.Dummy` – Transfer-Command-Implementierung (`MyCommandCommand`)
-- `TransferX.Transfer.Dummy/Helpers` – optionale Hilfsklassen (`PathMapper`, `ChangeDetector`)
+- `src/TransferX.Transfer.Dummy` – Transfer-Command-Implementierung (`MyCommandCommand`)
+- `src/TransferX.Transfer.Dummy/Helpers` – optionale Hilfsklassen (`PathMapper`, `ChangeDetector`)
 - `tests/TransferX.Transfer.Dummy.Test` – MSTest-Tests
 
 ## Build & Test
