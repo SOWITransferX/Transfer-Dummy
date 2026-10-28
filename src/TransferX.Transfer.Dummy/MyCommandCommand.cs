@@ -1,8 +1,6 @@
 // SOWI Informatik, www.sowi.ch
 // Franz Schönbächler
 
-using TransferX.Domain.ValueObjects.Progress;
-using TransferX.Provider.Abstractions;
 using TransferX.Transfer.Abstractions;
 using TransferX.Transfer.Abstractions.Metadata;
 using TransferX.Transfer.Abstractions.Models;
@@ -16,7 +14,9 @@ namespace TransferX.Transfer.Dummy;
 /// <remarks>
 /// Für eine vollständige Copy-Implementierung siehe
 /// <c>TransferXImplementTransferPlugin.md</c> Abschnitt 7 (MyCopyCommand):<br/>
-/// ListFiles → Download → Upload mit <c>ProgressAggregator</c> aus TransferX.Core.
+/// ListFiles → Download → Upload mit Fortschritt über <c>context.Progress</c>.<br/>
+/// Ab Abstractions 3.0.0-preview.1 übergibt der Host Pfade, Provider und Fortschritt<br/>
+/// im <see cref="TransferContext"/>; ein Core-Paket braucht das Plugin dafür nicht.
 /// </remarks>
 [TransferMetadata]
 public sealed class MyCommandCommand : ITransferCommand
@@ -32,14 +32,16 @@ public sealed class MyCommandCommand : ITransferCommand
     public string Version => "1.0.0";
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// Signatur ab Abstractions 3.0.0-preview.1.<br/>
+    /// <paramref name="context"/> bündelt Pfade, Provider und <c>context.Progress</c>.<br/>
+    /// <see cref="TransferResult.Success"/> und die Zähler berechnet das Modell;<br/>
+    /// <c>Duration</c> gibt es am Ergebnis nicht mehr.
+    /// </remarks>
     public Task<TransferResult> ExecuteAsync(
-        TransferConfigItem config,
-        IProvider sourceProvider,
-        IProvider targetProvider,
-        IProgress<ProgressReport>? progress = null,
+        TransferContext context,
         CancellationToken cancellationToken = default)
     {
-        var startTime = DateTime.UtcNow;
         var fileResults = new List<FileTransferResult>();
 
         try
@@ -47,21 +49,19 @@ public sealed class MyCommandCommand : ITransferCommand
             cancellationToken.ThrowIfCancellationRequested();
 
             // Bewusster Stub: keine List/Download/Upload-Logik.
-            // Später z. B.:
-            // var aggregator = new ProgressAggregator(config.TransferId, progress);
-            // var listResponse = (ListFilesResponse)await sourceProvider.ExecuteAsync(
-            //     new ListFilesRequest { Path = config.SourcePath, Recursive = true },
+            // Später z. B. Fortschritt über context.Progress (vom Host gesetzt, nie null):
+            // var listResponse = (ListFilesResponse)await context.Source.ExecuteAsync(
+            //     new ListFilesRequest { Path = context.SourcePath, Recursive = true },
             //     progress: null,
             //     cancellationToken);
+            // context.Progress.Initialize(listResponse.Items.Count, listResponse.TotalSizeBytes);
+
+            // context wird im Stub nicht ausgewertet; der Host liefert ihn für die spätere Logik.
+            _ = context;
 
             return Task.FromResult(new TransferResult
             {
-                Success = true,
                 TotalFiles = 0,
-                SuccessfulFiles = 0,
-                FailedFiles = 0,
-                TotalBytesTransferred = 0,
-                Duration = DateTime.UtcNow - startTime,
                 FileResults = fileResults.AsReadOnly()
             });
         }
@@ -71,14 +71,10 @@ public sealed class MyCommandCommand : ITransferCommand
         }
         catch (Exception ex)
         {
+            // Success wird false, sobald ErrorMessage gesetzt ist.
             return Task.FromResult(new TransferResult
             {
-                Success = false,
                 TotalFiles = 0,
-                SuccessfulFiles = 0,
-                FailedFiles = 0,
-                TotalBytesTransferred = 0,
-                Duration = DateTime.UtcNow - startTime,
                 FileResults = fileResults.AsReadOnly(),
                 ErrorMessage = ex.Message
             });
