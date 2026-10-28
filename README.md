@@ -31,7 +31,7 @@ Weitere Informationen zur Architektur und zum Gesamtsystem befinden sich in der 
 Der Dummy-Command `MyCommand` stellt ein **Scaffold-Plugin** bereit:
 
 - Registrierung als Transfer-Command über `[TransferMetadata]`
-- Ausführung von `ExecuteAsync` mit Quell- und Ziel-Provider
+- Ausführung von `ExecuteAsync(TransferContext, CancellationToken)`
 - Rückgabe eines leeren `TransferResult` mit `Success = true` (0 Dateien, 0 Bytes)
 - Abbruch über `CancellationToken` (`OperationCanceledException`)
 
@@ -42,22 +42,33 @@ Der Dummy-Command `MyCommand` stellt ein **Scaffold-Plugin** bereit:
 - Änderungserkennung für Sync-Transfers (`ChangeDetector`)
 
 Für eine vollständige Copy-Implementierung siehe `TransferXImplementTransferPlugin.md` Abschnitt 7 (MyCopyCommand):
-`ListFiles` → `Download` → `Upload` mit `ProgressAggregator` aus `TransferX.Core`.
+`ListFiles` → `Download` → `Upload` mit Fortschritt über `context.Progress`.
 
-## Konfiguration
+## Abhängigkeiten
 
-Der Transfer wird über `TransferConfigItem` gesteuert:
+Einzige direkte Paketabhängigkeit:
 
-| Eigenschaft          | Beschreibung                                      |
-| -------------------- | ------------------------------------------------- |
-| `TransferId`         | Eindeutige ID des Transfers                       |
-| `SourceProviderId`   | ID des Quell-Providers                            |
-| `SourcePath`         | Pfad am Quell-Provider (z. B. `/source`)          |
-| `TargetProviderId`   | ID des Ziel-Providers                             |
-| `TargetPath`         | Pfad am Ziel-Provider (z. B. `/target`)           |
-| `CommandName`        | Name des Transfer-Commands (hier: `MyCommand`)    |
+| Paket | Version | Quelle |
+| --- | --- | --- |
+| `TransferX.Transfer.Abstractions` | `3.0.0-preview.1` | nuget.org |
 
-Quell- und Ziel-Provider werden von TransferX injiziert; das Plugin orchestriert die Übertragung zwischen beiden.
+Transitiv folgen `TransferX.Provider.Abstractions` und `TransferX.Domain` in derselben Version.
+Das Plugin referenziert `TransferX.Core` nicht. Den Fortschritt liefert der Host über `context.Progress` (`ITransferProgress`).
+
+## Ausführungskontext
+
+`ExecuteAsync` erhält einen `TransferContext`. Der Host löst die Provider auf und setzt den Fortschritt.
+
+| Eigenschaft  | Beschreibung                                           |
+| ------------ | ------------------------------------------------------ |
+| `TransferId` | Eindeutige ID des Transfers                            |
+| `SourcePath` | Pfad am Quell-Provider (z. B. `/source`)               |
+| `TargetPath` | Pfad am Ziel-Provider (z. B. `/target`)                |
+| `Source`     | Bereits initialisierter Quell-Provider                 |
+| `Target`     | Bereits initialisierter Ziel-Provider                  |
+| `Progress`   | Fortschritt des Hosts (`ITransferProgress`, nie null)  |
+
+Das Plugin orchestriert die Übertragung zwischen `Source` und `Target`. `CommandName` bleibt `MyCommand`.
 
 ## Projektstruktur
 

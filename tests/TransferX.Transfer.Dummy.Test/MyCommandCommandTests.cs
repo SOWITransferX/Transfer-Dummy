@@ -1,12 +1,13 @@
 // SOWI Informatik, www.sowi.ch
 // Franz Schönbächler
 
+using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using TransferX.Domain.ValueObjects.Progress;
 using TransferX.Provider.Abstractions;
+using TransferX.Transfer.Abstractions;
 using TransferX.Transfer.Abstractions.Metadata;
-using TransferX.Transfer.Abstractions.Models;
+using TransferX.Transfer.Abstractions.Progress;
 using TransferX.Transfer.Dummy;
 
 namespace TransferX.Transfer.Dummy.Test;
@@ -20,6 +21,7 @@ public sealed class MyCommandCommandTests
 {
     private Mock<IProvider> _sourceProviderMock = null!;
     private Mock<IProvider> _targetProviderMock = null!;
+    private Mock<ITransferProgress> _progressMock = null!;
     private MyCommandCommand _command = null!;
 
     /// <summary>
@@ -30,6 +32,7 @@ public sealed class MyCommandCommandTests
     {
         _sourceProviderMock = new Mock<IProvider>();
         _targetProviderMock = new Mock<IProvider>();
+        _progressMock = new Mock<ITransferProgress>();
         _command = new MyCommandCommand();
     }
 
@@ -80,12 +83,7 @@ public sealed class MyCommandCommandTests
     [TestMethod]
     public async Task ExecuteAsync_EmptyStub_ReturnsSuccessWithZeroFiles()
     {
-        var config = CreateConfig();
-
-        var result = await _command.ExecuteAsync(
-            config,
-            _sourceProviderMock.Object,
-            _targetProviderMock.Object);
+        var result = await _command.ExecuteAsync(CreateContext());
 
         Assert.IsTrue(result.Success);
         Assert.AreEqual(0, result.TotalFiles);
@@ -102,27 +100,72 @@ public sealed class MyCommandCommandTests
     [TestMethod]
     public async Task ExecuteAsync_Cancelled_ThrowsOperationCanceledException()
     {
-        var config = CreateConfig();
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
         await Assert.ThrowsExceptionAsync<OperationCanceledException>(() =>
-            _command.ExecuteAsync(
-                config,
-                _sourceProviderMock.Object,
-                _targetProviderMock.Object,
-                progress: null,
-                cancellationToken: cts.Token));
+            _command.ExecuteAsync(CreateContext(), cts.Token));
     }
 
-    private static TransferConfigItem CreateConfig() =>
+    /// <summary>
+    /// Prüft, dass das Plugin <c>TransferX.Core</c> weder als Assembly noch als Paket referenziert.<br/>
+    /// Seit Abstractions 3.0.0-preview.1 ist nur <c>TransferX.Transfer.Abstractions</c> zulässig.
+    /// </summary>
+    [TestMethod]
+    public void References_DoNotInclude_TransferXCore()
+    {
+        var referencedNames = typeof(MyCommandCommand).Assembly
+            .GetReferencedAssemblies()
+            .Select(reference => reference.Name)
+            .ToList();
+
+        CollectionAssert.Contains(referencedNames, "TransferX.Transfer.Abstractions");
+        CollectionAssert.DoesNotContain(referencedNames, "TransferX.Core");
+
+        var projectFile = FindPluginProjectFile();
+        var projectText = File.ReadAllText(projectFile);
+
+        StringAssert.Contains(projectText, "Include=\"TransferX.Transfer.Abstractions\"");
+        StringAssert.Contains(projectText, "3.0.0-preview.1");
+        Assert.IsFalse(
+            projectText.Contains("TransferX.Core", StringComparison.Ordinal),
+            "Die Projektdatei darf TransferX.Core nicht enthalten.");
+    }
+
+    private TransferContext CreateContext() =>
         new()
         {
             TransferId = Guid.NewGuid(),
-            SourceProviderId = Guid.NewGuid(),
             SourcePath = "/source",
-            TargetProviderId = Guid.NewGuid(),
             TargetPath = "/target",
-            CommandName = "MyCommand"
+            Source = _sourceProviderMock.Object,
+            Target = _targetProviderMock.Object,
+            Progress = _progressMock.Object
         };
+
+    /// <summary>
+    /// Sucht die Plugin-Projektdatei ausgehend vom Testausgabeverzeichnis.
+    /// </summary>
+    private static string FindPluginProjectFile()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(
+                directory.FullName,
+                "src",
+                "TransferX.Transfer.Dummy",
+                "TransferX.Transfer.Dummy.csproj");
+
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        Assert.Fail("TransferX.Transfer.Dummy.csproj wurde nicht gefunden.");
+        return string.Empty;
+    }
 }
