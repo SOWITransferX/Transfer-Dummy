@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Einzige Plugin-Abhängigkeit: SDK 3.0.0-preview.1 von nuget.org. -->
-    <PackageReference Include="TransferX.Transfer.Abstractions" Version="3.0.0-preview.1" />
+    <!-- Einzige Plugin-Abhängigkeit: SDK 3.0.0 von nuget.org. -->
+    <PackageReference Include="TransferX.Transfer.Abstractions" Version="3.0.0" />
   </ItemGroup>
 
 </Project>

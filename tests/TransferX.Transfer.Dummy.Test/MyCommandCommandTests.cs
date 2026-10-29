@@ -109,7 +109,7 @@ public sealed class MyCommandCommandTests
 
     /// <summary>
     /// Prüft, dass das Plugin <c>TransferX.Core</c> weder als Assembly noch als Paket referenziert.<br/>
-    /// Seit Abstractions 3.0.0-preview.1 ist nur <c>TransferX.Transfer.Abstractions</c> zulässig.
+    /// Seit Abstractions 3.0.0 ist nur <c>TransferX.Transfer.Abstractions</c> zulässig.
     /// </summary>
     [TestMethod]
     public void References_DoNotInclude_TransferXCore()
@@ -126,7 +126,7 @@ public sealed class MyCommandCommandTests
         var projectText = File.ReadAllText(projectFile);
 
         StringAssert.Contains(projectText, "Include=\"TransferX.Transfer.Abstractions\"");
-        StringAssert.Contains(projectText, "3.0.0-preview.1");
+        StringAssert.Contains(projectText, "Version=\"3.0.0\"");
         Assert.IsFalse(
             projectText.Contains("TransferX.Core", StringComparison.Ordinal),
             "Die Projektdatei darf TransferX.Core nicht enthalten.");
