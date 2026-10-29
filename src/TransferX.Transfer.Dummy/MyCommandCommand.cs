@@ -15,7 +15,7 @@ namespace TransferX.Transfer.Dummy;
 /// Für eine vollständige Copy-Implementierung siehe
 /// <c>TransferXImplementTransferPlugin.md</c> Abschnitt 7 (MyCopyCommand):<br/>
 /// ListFiles → Download → Upload mit Fortschritt über <c>context.Progress</c>.<br/>
-/// Ab Abstractions 3.0.0-preview.1 übergibt der Host Pfade, Provider und Fortschritt<br/>
+/// Ab Abstractions 3.0.0 übergibt der Host Pfade, Provider und Fortschritt<br/>
 /// im <see cref="TransferContext"/>; ein Core-Paket braucht das Plugin dafür nicht.
 /// </remarks>
 [TransferMetadata]
@@ -33,7 +33,7 @@ public sealed class MyCommandCommand : ITransferCommand
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Signatur ab Abstractions 3.0.0-preview.1.<br/>
+    /// Signatur ab Abstractions 3.0.0.<br/>
     /// <paramref name="context"/> bündelt Pfade, Provider und <c>context.Progress</c>.<br/>
     /// <see cref="TransferResult.Success"/> und die Zähler berechnet das Modell;<br/>
     /// <c>Duration</c> gibt es am Ergebnis nicht mehr.

@@ -50,7 +50,7 @@ Einzige direkte Paketabhängigkeit:
 
 | Paket | Version | Quelle |
 | --- | --- | --- |
-| `TransferX.Transfer.Abstractions` | `3.0.0-preview.1` | nuget.org |
+| `TransferX.Transfer.Abstractions` | `3.0.0` | nuget.org |
 
 Transitiv folgen `TransferX.Provider.Abstractions` und `TransferX.Domain` in derselben Version.
 Das Plugin referenziert `TransferX.Core` nicht. Den Fortschritt liefert der Host über `context.Progress` (`ITransferProgress`).
